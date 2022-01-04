@@ -3,10 +3,10 @@ from django.db import models
 # Book : 
 class BookM(models.Model):
     id     = models.IntegerField(primary_key=True)
-    title  = models.CharField(max_length=15)
-    author = models.CharField(max_length=10, default="unknown")
-    body   = models.TextField(default="this is our book body") 
+    title  = models.CharField(max_length=200)
+    author = models.CharField(max_length=200, default="unknown")
     lang   = models.CharField(max_length=10)
+    body   = models.TextField(default="this is our book body")     
 
     class Meta:
         constraints = [
@@ -17,5 +17,5 @@ class BookM(models.Model):
 
 # Book indexé
 # class BookMIndexé(models.Model):
-#     id = 
+#     id = ...
 
