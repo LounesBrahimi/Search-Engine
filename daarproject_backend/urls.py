@@ -19,5 +19,5 @@ from django.urls.conf import include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('gelAllBooks/', include('searchengin_backend.urls')),
+    path('', include('searchengin_backend.urls')),
 ]
