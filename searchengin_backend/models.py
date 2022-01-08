@@ -1,6 +1,8 @@
 from django.db import models
+from typing import List
 
-# Book : 
+
+# Table des Livres : 
 class BookM(models.Model):
     id     = models.IntegerField(primary_key=True)
     title  = models.CharField(max_length=200)
@@ -15,7 +17,13 @@ class BookM(models.Model):
         ordering = ['id' , 'title']
 
 
-# Book indexé
-# class BookMIndexé(models.Model):
-#     id = ...
+# Table d'indexage :
+class BookMIndex(models.Model):
+    attributes = models.JSONField(default=dict,null=False)
+
+
+# class BookMIndexM(models.Model):
+#     idIndex   = models.IntegerField(primary_key=True)
+#     word      = models.CharField()
+#     bookInfo  = models.JSONField(default=dict)
 
