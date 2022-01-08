@@ -1,6 +1,23 @@
 # daar-final-project
 
+### commandes : NB : on peut développer un script pour executer ces commandes d'un coup...
 
+- décommenter la ligne 2 et 3 du fichier tools.py pour télécharger les stopword.. 
+- pip install pydantic
+- python manage.py makemigrations
+- python manage.py migrate  
+- python manage.py dataLoader 1 
+- python manage.py runserver
+
+NB : commenter les deux lignes (tools.py) après le lancement du serveur 
+
+### exemple de requetes : 
+
+- http://127.0.0.1:8000/gelAllBooks/
+- http://127.0.0.1:8000/gelAllIndex/
+- http://127.0.0.1:8000/Books/Search/11/
+- http://127.0.0.1:8000/Index/Search/Modern/
+- http://127.0.0.1:8000/Index/Search/Wonderland/
 
 ## Moteur de recherche d’une bibliotheque.
 
@@ -19,7 +36,10 @@ les fonctionnalites principales de l’application doivent obligatoirement compr
 ###  Une fonctionnalite implicite de classement : 
 
 
-
 ### Une fonctionnalite implicite de suggestion :
+
+
+
+- ...
 
 
