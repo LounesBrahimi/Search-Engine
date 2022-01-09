@@ -1,6 +1,9 @@
 import requests
 import html2text
 
+from searchengin_backend.models import BookM
+from searchengin_backend.serializers import BookMSerializer
+
 url_online_db = "https://gutendex.com/"
 
 def numberWordOfString(text : str):
@@ -16,8 +19,7 @@ def contructDB(sizeDB: int, minNumberWords: int):
             list_books = requests.get(url_online_db+'/books?mime_type=text&'+'page='+str(page_num))
             list_books_json = list_books.json()
             data = list_books_json['results']
-
-            for book in data :
+            for book in data:
                 textBook : str = ""
                 if (numberBooksStocked > sizeDB):
                     break
@@ -29,8 +31,16 @@ def contructDB(sizeDB: int, minNumberWords: int):
                 numberWords : int = numberWordOfString(textBook)
                 if (numberWords >= minNumberWords):
                     numberBooksStocked += 1
+                    serializer = BookMSerializer(data = {
+                        "id": book['id'],
+                        "title": book['title'],
+                        "author": ('None' if len(book['authors']) == 0 else book['authors'][0]['name']),
+                        "lang": book['lang'],
+                        "body": textBook
+                        })
+                    serializer.save()
+                    print(str(numberBooksStocked)+" stocked")
 
-
-sizeDB : int = 10
+sizeDB : int = 1664
 minNumberWords : int = 10000
 contructDB(sizeDB, minNumberWords)
