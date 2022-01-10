@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand, CommandError
 from searchengin_backend.validator import AttributesSchema
 from searchengin_backend.models import BookM, BookMIndex
-from searchengin_backend.serializers import BookMIndexSerializer, BookMSerializer
+from searchengin_backend.serializers import BookMSerializer
 import requests
 
 
-from searchengin_backend.tools import getWordList, printBook, printErrorMessage, printSuccesMessage, serializeIndex
+from searchengin_backend.utils import getWordList, printBook, printErrorMessage, printSuccesMessage, serializeIndex
 
 class Command(BaseCommand):
 
@@ -24,6 +24,7 @@ class Command(BaseCommand):
         pages_web_num = 4 
         nbBook = 1664 ## nombre de livre min dans la biblio
         counter = 0
+        bookMap = {}
         nbWords = 10000 ## chaque livre doit avoir au min 10 000 mots
         
         # supprimer les anciens données enregistrées
@@ -86,31 +87,24 @@ class Command(BaseCommand):
                         # ------------- contruire la table d'indexage  ------------- #
                         
                         ## 1 - recupérer la liste des mots du titre, pour l'instant on suppose que la recherche fait par titre
-                        words = getWordList(title,lang)
+                        text_response = title+" ".join(book['subjects'])
+                        words = getWordList(text_response,lang)
+
                         ## 2 - contruire l'objet index pour chaque livre 
                         indexbject = {
                                 'idIndex': counter,
                                 'idBook' : idBook,
                                 'words': words,
                         }
+                        
+                        bookMap[idBook] = words
+
                         ## 3 - validation des données
                         AttributesSchema(**indexbject)
+
                         ## 4 - serializer la table d'indéxage 
                         serializeIndex(self,indexbject,counter)
                     else:
                         printErrorMessage(self,' ------> error adding book with id : "%s"'% id)
+                    
 
-
-## Etapes suivantes : 
-## reche regex
-## utiliser la biblio regex : algorithm aho-ullman
-
-
-## code pour calculer le graphe de jackard --> il va nous servir pour faire la partie de suggestion
-## List<Books> = [B1,B2]
-# L ---> B1, B2, b3
-# 50% => b2 
-
-
-## pour le classement
-## crank : author, title

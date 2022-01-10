@@ -1,3 +1,4 @@
+
 ## commandes : NB : on peut développer un script pour executer ces commandes d'un coup...
 
 décommenter la ligne 2 et 3 du fichier tools.py pour télécharger les stopword.. puis commenter-les
