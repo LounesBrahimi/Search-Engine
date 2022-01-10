@@ -64,3 +64,41 @@ def printSuccesMessage(self,message):
 
 def printErrorMessage(self,message):
     self.stdout.write(self.style.ERROR(message))
+
+def saveGraph(serializerGraph):
+    if serializerGraph.is_valid(raise_exception=True):
+        serializerGraph.save()
+        print(' ------> sucess adding graph')
+    else :
+        print(' ------> error adding graph')
+
+def calculJaccardDistance(bookPertinentId,neighorId):
+    return 0
+## ----------------------- construire le graph jaccard pour faire la suggestion 
+
+# 1 - suite à une recherche, stocker les 3 livres les plus pertinents de la recherche : qui contient le + grand nombre d'occ du mot clé 
+# 2 - pour chacun des 3 livres, stocker dans une structure de données, tous les voisins possible
+# 3 - pour chacun des 3 livres, selectionner que les voisins qui verifie la distance de jaccard 
+# 4 - stocker dans un graphe ces voisins selectionnées
+# 5 - stocker le graphe générer dans une table sqlLite, afin de ne pas le regénerer une autre fois au cas d'un recherche avec le même mot clé 
+
+# bookMap = {}
+# # bookMap[idBook] = words
+# def makeJaccardGraph(bookMap,distance):
+    
+#     for idbook in bookMap:
+#         dist = calcule_distance()
+        
+
+def removekey(d, key):
+    r = dict(d)
+    del r[key]
+    return r
+
+mymap = {}
+mymap["key1"] = "val1"
+mymap["key2"] = "val2"
+
+# print(mymap)
+mylist = list(mymap)
+# print(mylist)

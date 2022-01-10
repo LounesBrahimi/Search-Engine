@@ -2,8 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('gelAllBooks/', views.RedirectionBooksList.as_view()),
-    path('gelAllIndex/', views.RedirectionIndexList.as_view()),
+    path('getAllBooks/', views.RedirectionBooksList.as_view()),
+    path('getAllIndex/', views.RedirectionIndexList.as_view()),
+    path('getGraph/', views.RedirectionGraph.as_view()),
     path('Books/Search/<int:id>/', views.RedirectionBookById.as_view()),
     path('Index/Search/<str:word>/', views.RedirectionSimpleSearch.as_view()),
+
 ]

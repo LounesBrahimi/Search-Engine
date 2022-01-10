@@ -19,7 +19,14 @@ class BookM(models.Model):
 
 # Table d'indexage :
 class BookMIndex(models.Model):
-    attributes = models.JSONField(default=dict,null=False)
+    attributes = models.JSONField(default=dict)
+
+
+# Table represente le graphe de jaccard
+class JaccardGraph(models.Model):
+    id        = models.AutoField(primary_key=True)
+    bookId    = models.IntegerField(default='-1') 
+    neighbors = models.JSONField(default=dict,null=True) 
 
 
 # class BookMIndexM(models.Model):
