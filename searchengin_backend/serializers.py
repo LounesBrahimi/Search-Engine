@@ -7,7 +7,7 @@ from searchengin_backend.models import BookM, BookMIndex, JaccardGraph
 class BookMSerializer(ModelSerializer):
     class Meta:
         model = BookM
-        fields = ('id', 'title', 'author' , 'lang' , 'body')
+        fields = ('id', 'title', 'author' , 'lang' , 'body', 'rank')
 
 class BookMIndexSerializer(ModelSerializer):
     class Meta:
