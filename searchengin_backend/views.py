@@ -5,9 +5,10 @@ from searchengin_backend.models import BookM, BookMIndex, JaccardGraph
 from searchengin_backend.serializers import BookMIndexSerializer, BookMSerializer, JaccardGraphSerializer
 from rest_framework.views import APIView
 import json
+import math 
 from collections import Counter
 
-from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph
+from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
 # ----------------------------- Afficher tt les livres  
 
@@ -60,55 +61,68 @@ class RedirectionSimpleSearch(APIView):
         except BookMIndex.DoesNotExist:
             raise Http404
 
+    def getn(self):
+        return 4
+
     def get(self, request, word, format=None):
-        #JaccardGraph.objects.all().delete()
+        # JaccardGraph.objects.all().delete()
         bookMap = {}
+        bookMapIdWords = {}
         objectdata = {}
         originbooks = []
         suggestions = []
-        jaccardDistance = 50
+        jaccardDistance = 60 ## %
 
-        result = self.get_object(word) 
+        result = self.get_object(word) ##
         for e in result:
             bookid          = e.attributes['idBook']
             wordslist       = e.attributes['words']
             wordsmap = Counter(wordslist)
             bookMap[bookid] = wordsmap[word] 
+            bookMapIdWords[bookid] = wordsmap
             originbooks.append(bookid)
 
         bookMap2 = dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True))
         mostPertinentBooks = list(bookMap2)[:3]
 
-        for bookPertinentId in mostPertinentBooks:
-                neighbors = list(removekey(bookMap,bookPertinentId)) 
+
+        for bookPertinentId in mostPertinentBooks: 
+                # liste des voisins des 3 livres pertinents issue de la recherche 
+                neighbors = list(removekey(bookMap,bookPertinentId))  ## neighbors = bookMap - bookPertinent
+                
+                # Map<word,occ> pour chaque livre pertinent
+                words_occ_pertinent = Counter(bookMapIdWords[bookPertinentId])
+
+                # conserver que les voisins qui respectent la distance de jaccard
+                for neighborId in list(neighbors):
+                    words_occ_neighbor  = Counter(bookMapIdWords[neighborId])
+                    dist = calculJaccardDistance(words_occ_pertinent , words_occ_neighbor)*100  
+                    printDistance(bookPertinentId, neighborId, dist)
+                    if math.floor(dist) > jaccardDistance: 
+                        neighbors.remove(neighborId)
+                      
+                # vérifier si le livre déja dans le graphe     
                 exist = JaccardGraph.objects.filter(bookId=bookPertinentId).exists()
                 if exist == True: 
+                    print("------------------------------------- book "+str(bookPertinentId)+" already present in graph, add new node with new neighbors -------------------------------------")
+                    
                     book = JaccardGraph.objects.get(bookId=bookPertinentId)
                     print("### book already in graph, update node neighbors")
-                    book.neighbors = list(set(book.neighbors+neighbors)) 
+                    updatedNeighbors = book.neighbors + neighbors
+                    book.neighbors = list(set(updatedNeighbors))
                     suggestions += book.neighbors
                     book.save()
                     continue
                 else :
-                    print("### book is not present in graph, add new node with new neighbors")
-
-                    # verifier la distance de jaccard entre le bookPertinent et chacun de ses possible voisins
-                    #print("------------>>>> "+str(neighbors))
-                    for neighorId in neighbors:
-                        #print("-----------> "+str(neighorId))
-                        dist = calculJaccardDistance(bookPertinentId,neighorId) 
-                        # if dist < jaccardDistance:
-                        #     print("add this neighbour")
-                        # else:
-                        #     print('not add this neighbour')
-
+                    print("------------------------------------- book "+str(bookPertinentId)+" is not present in graph, add new node with new neighbors -------------------------------------")
+                   
                     serializerGraph = JaccardGraphSerializer( data = {
                             "bookId"    : bookPertinentId,
-                            "neighbors" : neighbors  
+                            "neighbors" : neighbors
                         }
                     )
                     saveGraph(serializerGraph)
-
+                    
         suggestions = list(dict.fromkeys(suggestions))
         suggestions = [id for id in suggestions if id not in originbooks]
         print("searched word  -> "+str(word))
@@ -126,8 +140,8 @@ class RedirectionSimpleSearch(APIView):
 class RedirectionGraph(APIView):
     def get(self, request, format=None):
 
-        graphs = JaccardGraph.objects.all()
-        jsondata = JaccardGraphSerializer(graphs, many=True)
+        graph = JaccardGraph.objects.all()
+        jsondata = JaccardGraphSerializer(graph, many=True)
 
         objectdata = {}
         objectdata['data'] = jsondata.data

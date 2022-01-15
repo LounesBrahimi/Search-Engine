@@ -19,6 +19,7 @@ class BookM(models.Model):
 
 # Table d'indexage :
 class BookMIndex(models.Model):
+    # id = models.AutoField()
     attributes = models.JSONField(default=dict)
 
 

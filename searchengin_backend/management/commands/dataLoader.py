@@ -22,10 +22,15 @@ class Command(BaseCommand):
         ## init
         api_url = "https://gutendex.com/"
         pages_web_num = 4 
-        nbBook = 1664 ## nombre de livre min dans la biblio
         counter = 0
         bookMap = {}
-        nbWords = 10000 ## chaque livre doit avoir au min 10 000 mots
+
+        ## ----------------------
+        sizeDB : int = 1664
+        minNumberWords : int = 10000
+        numberBooksStocked : int = 0
+
+        ## -----------------------
         
         # supprimer les anciens données enregistrées
         BookM.objects.all().delete()
@@ -36,8 +41,8 @@ class Command(BaseCommand):
         self.stdout.write('numero de page web : "%s"' % p_num)
 
         ## pour avoir 1664 il faut parcourir 52 page web
-        while(pages_web_num*32 % nbBook != 0) :
-                pages_web_num = pages_web_num + 1
+        # while(pages_web_num*32 % nbBook != 0) :
+        #         pages_web_num = pages_web_num + 1
     
         for i in p_num: ## pour chaque page web on recupere 32 books => 2*32 = 64
             
@@ -54,7 +59,8 @@ class Command(BaseCommand):
                 #     continue
                 # else : 
                     counter  = counter + 1
-
+                    # if (numberBooksStocked > sizeDB):
+                    #     break
                     # ------------- contruire la table des livres  ------------- #
                     
                     idBook = book['id']
