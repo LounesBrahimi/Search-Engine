@@ -4,6 +4,10 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from searchengin_backend.serializers import BookMIndexSerializer
+import math 
+
+
+jaccardDistance = 90 ## %
 
 
 # recuperer la liste des stop words 
@@ -18,6 +22,7 @@ def getStopWordList(lang):
 # renvoyer une liste des mots dans un texte en supprimant les stopword, les espaces, les mots non utils...
 def getWordList(text,lang) : 
     stop_words = getStopWordList(lang)
+    text = text.lower()
     words = word_tokenize(text)
     filtered_words = []
     
@@ -68,12 +73,70 @@ def printErrorMessage(self,message):
 def saveGraph(serializerGraph):
     if serializerGraph.is_valid(raise_exception=True):
         serializerGraph.save()
-        print(' ------> sucess adding graph')
+        # print(' ------> sucess adding graph')
     else :
         print(' ------> error adding graph')
 
-def calculJaccardDistance(bookPertinentId,neighorId):
-    return 0
+
+## calculer la distance de jaccard 
+# pour calculer la distance entre deux livres : 
+#  
+#
+
+
+a, b = ['a', 'b', 'g', 'r'], ['e', 'g', 'l', 1, 'w']
+res = set(a).intersection(b)
+
+print(res) ## {'g'}
+for x in a:
+    if x in res:
+        print(str(x)+" present in b")
+    else:
+        print(x+" absent in b")
+
+def verifyJaccardDistance(dist, neighborId, neighbors):
+    if math.floor(dist) < jaccardDistance: 
+        print("==> add this neighbour : "+str(neighborId)+"\n")
+    else:
+        print("==> do not add this neighbour : "+str(neighborId))
+        neighbors.remove(neighborId)
+
+def calculJaccardDistance(wordsb1,wordsb2):
+    sumOfOcc    = 0
+    sumOfmaxOcc = 0
+    
+    # word exist just in b1 and b2 : 
+    common_words = set(wordsb1).intersection(wordsb2)
+    # print("common words : "+str(common_words))
+    for w1 in common_words:
+        occb1 = wordsb1[w1]
+        occb2 = wordsb2[w1]
+        sumOfmaxOcc +=  max(occb1,occb2) - min(occb1,occb2)
+        sumOfOcc    +=  max(occb1,occb2)
+
+    # word exist just in b1 : 
+    inb1 = list(set(wordsb1).difference(wordsb2))
+    # print("words just in b1 : "+str(inb1))
+    for w2 in inb1:
+        sumOfmaxOcc += wordsb1[w2]
+        sumOfOcc    += wordsb1[w2]
+
+    # word exist just in b2
+    inb2 = list(set(wordsb2).difference(wordsb1))
+    # print("words just in b2 : "+str(inb2))
+    for w3 in inb2:
+        sumOfmaxOcc += wordsb2[w3]
+        sumOfOcc    += wordsb2[w3]
+
+    try:
+        return sumOfmaxOcc/sumOfOcc
+    except:
+        return 1
+
+def printDistance(bookPertinentId, neighborId, dist):
+    print("==> distance between "+str(bookPertinentId)+" and "+str(neighborId)+" is : "+str(math.floor(dist))+" %")
+
+
 ## ----------------------- construire le graph jaccard pour faire la suggestion 
 
 # 1 - suite à une recherche, stocker les 3 livres les plus pertinents de la recherche : qui contient le + grand nombre d'occ du mot clé 
@@ -102,3 +165,14 @@ mymap["key2"] = "val2"
 # print(mymap)
 mylist = list(mymap)
 # print(mylist)
+
+def numberWordOfString(text : str):
+    word_list = text.split()
+    return len(word_list)
+
+
+
+
+# a = [4, 3, 1, 6]
+# a.remove(4)
+# print("=================><==== "+str(a))
