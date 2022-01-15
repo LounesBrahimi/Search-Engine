@@ -9,6 +9,7 @@ class BookM(models.Model):
     author = models.CharField(max_length=200, default="unknown")
     lang   = models.CharField(max_length=10)
     body   = models.TextField(default="this is our book body")     
+    rank = models.IntegerField(default="0")
 
     class Meta:
         constraints = [

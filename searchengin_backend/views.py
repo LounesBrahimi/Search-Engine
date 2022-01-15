@@ -3,10 +3,10 @@ from django.http.response import Http404
 from django.http import HttpResponse
 from searchengin_backend.models import BookM, BookMIndex, JaccardGraph
 from searchengin_backend.serializers import BookMIndexSerializer, BookMSerializer, JaccardGraphSerializer
-from rest_framework.views import APIView
 import json
 import math 
 from collections import Counter
+from rest_framework.views import APIView
 
 from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
@@ -65,13 +65,13 @@ class RedirectionSimpleSearch(APIView):
         return 4
 
     def get(self, request, word, format=None):
-        # JaccardGraph.objects.all().delete()
+        #JaccardGraph.objects.all().delete()
         bookMap = {}
         bookMapIdWords = {}
         objectdata = {}
         originbooks = []
         suggestions = []
-        jaccardDistance = 60 ## %
+        jaccardDistance = 80 ## %
 
         result = self.get_object(word) ##
         for e in result:
@@ -100,11 +100,13 @@ class RedirectionSimpleSearch(APIView):
                     printDistance(bookPertinentId, neighborId, dist)
                     if math.floor(dist) > jaccardDistance: 
                         neighbors.remove(neighborId)
+                    else:
+                        print("add node : "+str(neighborId))
                       
                 # vérifier si le livre déja dans le graphe     
                 exist = JaccardGraph.objects.filter(bookId=bookPertinentId).exists()
                 if exist == True: 
-                    print("------------------------------------- book "+str(bookPertinentId)+" already present in graph, add new node with new neighbors -------------------------------------")
+                    print("------------------------------------- book "+str(bookPertinentId)+" already present in graph, update neighbors -------------------------------------")
                     
                     book = JaccardGraph.objects.get(bookId=bookPertinentId)
                     print("### book already in graph, update node neighbors")
@@ -131,7 +133,7 @@ class RedirectionSimpleSearch(APIView):
         print("suggestion res -> "+str(suggestions))
 
         objectdata['books']      = BookMIndexSerializer(result, many=True).data
-        objectdata['suggestion'] = list(suggestions)[:5]
+        objectdata['suggestions'] = list(suggestions)[:5]
 
         return HttpResponse(json.dumps(objectdata), content_type="application/json", status=200, reason="get indexs accepting filter condition") 
 
