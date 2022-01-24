@@ -27,7 +27,7 @@ def getWordList(text,lang) :
     filtered_words = []
     
     for w in words:
-        if w not in stop_words:
+        if w not in stop_words:     
             filtered_words.append(w)
 
     filtered_words = [w for w in words if len(w) > 2
@@ -87,12 +87,12 @@ def saveGraph(serializerGraph):
 a, b = ['a', 'b', 'g', 'r'], ['e', 'g', 'l', 1, 'w']
 res = set(a).intersection(b)
 
-print(res) ## {'g'}
-for x in a:
-    if x in res:
-        print(str(x)+" present in b")
-    else:
-        print(x+" absent in b")
+# print(res) ## {'g'}
+# for x in a:
+#     if x in res:
+#         print(str(x)+" present in b")
+#     else:
+#         print(x+" absent in b")
 
 def verifyJaccardDistance(dist, neighborId, neighbors):
     if math.floor(dist) < jaccardDistance: 
@@ -134,7 +134,7 @@ def calculJaccardDistance(wordsb1,wordsb2):
         return 1
 
 def printDistance(bookPertinentId, neighborId, dist):
-    print("==> distance between "+str(bookPertinentId)+" and "+str(neighborId)+" is : "+str(math.floor(dist))+" %")
+    print("==> distance between "+str(bookPertinentId)+" and "+str(neighborId)+" is : "+str(round(dist,2))+" ")
 
 
 ## ----------------------- construire le graph jaccard pour faire la suggestion 
