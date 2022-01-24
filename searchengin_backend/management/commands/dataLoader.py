@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from searchengin_backend.validator import AttributesSchema
-from searchengin_backend.models import BookM, BookMIndex
+from searchengin_backend.models import BookM, BookMIndex, JaccardGraph
 from searchengin_backend.serializers import BookMSerializer
 import requests
 
@@ -35,6 +35,7 @@ class Command(BaseCommand):
         # supprimer les anciens données enregistrées
         BookM.objects.all().delete()
         BookMIndex.objects.all().delete()
+        JaccardGraph.objects.all().delete()
 
         ## recuperer le parametre
         p_num = options['page_id']
@@ -67,6 +68,7 @@ class Command(BaseCommand):
                     title = book['title']
                     author = ('unknown' if len(book['authors']) == 0 else book['authors'][0]['name'])
                     lang = book['languages'][0]
+                    cover = book['formats']['image/jpeg']
                     try:
                         body = book['formats']["text/plain; charset=utf-8"]
                         body = body.replace(".zip", ".txt")
@@ -82,7 +84,8 @@ class Command(BaseCommand):
                             "title":title,
                             "author":author,
                             "lang":lang,
-                            "body": body
+                            "body":body,
+                            "cover":cover
                         }
                     )
 
