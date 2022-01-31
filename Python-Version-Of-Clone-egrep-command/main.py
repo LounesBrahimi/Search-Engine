@@ -6,6 +6,7 @@ from KmpAlgorithm import KmpAlgorithm
 from RegEx import RegEx
 from SyntaxTree import SyntaxTree
 from NDFA import NDFA
+from NDFARemoveEpsilon import NDFARemoveEpsilon
 
 #Retourne vraie si l'expression reguliere est reduite à une suite de concatenations
 def estSuiteConcatenations(regEx : str):
@@ -62,6 +63,9 @@ def main():
             print(ret.toString())
             n = NDFA(100000)
             n.arbreToNDFA(ret)
-            printMatrix(n.getNdfaMatrix())
+            #printMatrix(n.getNdfaMatrix())
+            nSansEpsilons = NDFARemoveEpsilon(n.getNdfaMatrix(), 100000, n.getnColonnes(), n.getNEtat())
+            nSansEpsilons.supression()
+            print("####fin####")
 
 main()

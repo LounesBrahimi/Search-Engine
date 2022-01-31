@@ -20,7 +20,7 @@ class NDFA:
         # Nombre de colonnes de la matrice
         self.nColonnes = 259
         # La matrice representant l'automate finie non deterministe
-        self.ndfaMatrix = [ [ 0 for i in range(self.nLignes) ] for j in range(self.nColonnes) ]
+        self.ndfaMatrix = [ [ 0 for i in range(nLignes) ] for j in range(self.nColonnes) ]
         # la colonne 256 indique si l'etat a des epslions transitions
         self.indiceEpsilon = 256
 	    # la colonne 257 indique si l'etat est un etat initiale
@@ -559,3 +559,9 @@ class NDFA:
     # Retourne la matrice representant l'automate finie non deterministe
     def getNdfaMatrix(self):
         return self.ndfaMatrix
+
+    def getnColonnes(self):
+        return self.nColonnes
+
+    def getNEtat(self):
+        return self.numeroEtat
