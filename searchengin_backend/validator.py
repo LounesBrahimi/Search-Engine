@@ -4,7 +4,7 @@ from pydantic import (
     StrictInt,
 )
 
-## cette classe permet de faire la validation des données 
+# cette classe permet de faire la validation des données 
 class AttributesSchema(BaseModel):
     idIndex : StrictInt
     idBook  : StrictInt

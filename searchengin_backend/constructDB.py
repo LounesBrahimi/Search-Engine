@@ -1,7 +1,6 @@
 import requests
 import html2text
 
-from searchengin_backend.models import BookM
 from searchengin_backend.serializers import BookMSerializer
 
 url_online_db = "https://gutendex.com/"
