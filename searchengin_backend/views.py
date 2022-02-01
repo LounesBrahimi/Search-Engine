@@ -87,12 +87,11 @@ class RedirectionSimpleSearch(APIView):
 
     def containsRegEx(self, book, regEx:Str):
             listWords = book.attributes['words']
-            for word in listWords:
-                if (self.result_command(word, regEx)):
-                    print("True")
+            united_text_words = '_'.join(listWords)
+            if (self.result_command(united_text_words, regEx)):
                     return True
-            print("False")
             return False
+
 
     def get_object(self,word):
         try:
