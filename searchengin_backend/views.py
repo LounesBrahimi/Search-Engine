@@ -56,7 +56,7 @@ class RedirectionBookById(APIView):
             with urllib.request.urlopen("https://gutenberg.org/files/"+id +"/"+
                                 id+"-h/"+id+"-h.htm") as url:
                 textBook = url.read().decode('utf-8')
-                return HttpResponse(textBook, content_type='text/plain', status=200)
+                return HttpResponse(textBook, content_type='text/html', status=200)
         except:
             pass
 
