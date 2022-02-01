@@ -1,3 +1,4 @@
+from ast import Str
 from operator import index
 from tkinter.tix import Tree
 from turtle import up
@@ -10,6 +11,8 @@ import json
 import math 
 from collections import Counter
 from rest_framework.views import APIView
+import sys
+import subprocess
 
 from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
@@ -72,9 +75,34 @@ class RedirectionGraph(APIView):
 # ----------------------------- Recherche Simple Par Mot  + Suggestions
 
 class RedirectionSimpleSearch(APIView):
+    def run_regEx_command(self, command):
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        return iter(p.stdout.readline, b'')
+
+    def result_command(self, word:str, regEx:Str):
+            result: Str = ''
+            for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, word]):
+                result =result + "" + output_line.decode("utf-8")
+            return result
+
+    def containsRegEx(self, book, regEx:Str):
+            listWords = book.attributes['words']
+            for word in listWords:
+                if (self.result_command(word, regEx)):
+                    print("True")
+                    return True
+            print("False")
+            return False
+
     def get_object(self,word):
         try:
-            return BookMIndex.objects.filter(attributes__words__icontains = word)
+            listBookIndex = []
+            for book in BookMIndex.objects.all():
+                if (self.containsRegEx(book, word)):
+                    listBookIndex.append(book) 
+
+            #return BookMIndex.objects.filter(attributes__words__icontains = word)
+            return listBookIndex
         except BookMIndex.DoesNotExist:
             raise Http404
 
