@@ -75,33 +75,43 @@ class RedirectionGraph(APIView):
 # ----------------------------- Recherche Simple Par Mot  + Suggestions
 
 class RedirectionSimpleSearch(APIView):
+    
+    #Retourne vraie si l'expression reguliere est reduite à une suite de concatenations
+    def estSuiteConcatenations(self, regEx : str):
+        for i in range(len(regEx)):
+            if (((regEx[i] == '*') | (regEx[i] == '|')) | (regEx[i] == '.')):
+                return False
+        return True
+
     def run_regEx_command(self, command):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return iter(p.stdout.readline, b'')
 
     def result_command(self, word:str, regEx:Str):
-            result: Str = ''
             for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, word]):
-                result =result + "" + output_line.decode("utf-8")
-            return result
+                if(len(output_line)>0):
+                    return '#'
+            return ''
 
     def containsRegEx(self, book, regEx:Str):
             listWords = book.attributes['words']
-            united_text_words = '_'.join(listWords)
+            united_text_words = '\n'.join(listWords)
             if (self.result_command(united_text_words, regEx)):
+                    print("True")
                     return True
+            print("False")
             return False
-
 
     def get_object(self,word):
         try:
-            listBookIndex = []
-            for book in BookMIndex.objects.all():
-                if (self.containsRegEx(book, word)):
-                    listBookIndex.append(book) 
-
-            #return BookMIndex.objects.filter(attributes__words__icontains = word)
-            return listBookIndex
+            if (self.estSuiteConcatenations(word)):
+                return BookMIndex.objects.filter(attributes__words__icontains = word)
+            else:
+                listBookIndex = []
+                for book in BookMIndex.objects.all():
+                    if (self.containsRegEx(book, word)):
+                        listBookIndex.append(book) 
+                return listBookIndex
         except BookMIndex.DoesNotExist:
             raise Http404
 
