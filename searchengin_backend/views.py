@@ -10,8 +10,8 @@ import json
 import math 
 from collections import Counter
 from rest_framework.views import APIView
-import sys
 import subprocess
+import urllib.request
 
 from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
@@ -49,6 +49,17 @@ class RedirectionBookById(APIView):
         data = BookMSerializer(book)
         return HttpResponse(str(data.data), content_type="application/json", status=200, reason="get one books by his id")
 
+# ----------------------------- Rechercher un livre dans la base de donneee par son id
+class RedirectionBookById(APIView):
+    def get(self, request, id, format=None):
+        try:
+            with urllib.request.urlopen("https://gutenberg.org/files/"+id +"/"+
+                                id+"-h/"+id+"-h.htm") as url:
+                textBook = url.read().decode('utf-8')
+                return HttpResponse(textBook, content_type='text/plain', status=200)
+        except:
+            pass
+
 # ----------------------------- Afficher tt le graph de suggestions (livres et leurs voisins)
 class RedirectionGraph(APIView):
     def get(self, request, format=None):
@@ -68,16 +79,19 @@ class RedirectionSimpleSearch(APIView):
                 return False
         return True
 
+    # Execute la commande passee en parametre pour requeter le fichier jar
     def run_regEx_command(self, command):
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         return iter(p.stdout.readline, b'')
 
-    def result_command(self, word:str, regEx:Str):
-            for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, word]):
+    # formule la command a effectuer sur le fichier jar pour rechercher la regEx dans le texte
+    def result_command(self, text:str, regEx:Str):
+            for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, text]):
                 if(len(output_line)>0):
                     return '#'
             return ''
 
+    # Verifie si le livre contient des chaines de caracteres qui satisfant la regEx recherchee
     def containsRegEx(self, book, regEx:Str):
             listWords = book.attributes['words']
             united_text_words = '\n'.join(listWords)
@@ -85,6 +99,7 @@ class RedirectionSimpleSearch(APIView):
                     return True
             return False
 
+    # Methode principale pour rechercher une regEx ou une chaine de caractere dans la base de donnee
     def get_object(self,word):
         try:
             if (self.estSuiteConcatenations(word)):
@@ -117,30 +132,31 @@ class RedirectionSimpleSearch(APIView):
             book.save()
 
 
-    def get(self, request, word, format=None):
-        print(" ------------------------------------------------------- search begin -----------------------------------------------------")
-        
+    # Methode permettant de faire la recherche
+    def get(self, request, searchedWord, format=None):
+        print("===========____search begin____===========")
         bookMap, bookMapIdWords, objectdata = ({} for i in range(3))
         originbooks, suggestions =  ([] for i in range(2))
         jaccardDistance = 80 
-        result = self.get_object(word)
+        l_books_matchs = self.get_object(searchedWord)
         books = []
-        for e in result:
-            bookid          = e.attributes['idBook']
-            wordslist       = e.attributes['words']
-            wordsmap = Counter(wordslist)
-            bookMap[bookid] = wordsmap[word] 
-            bookMapIdWords[bookid] = wordsmap ## cette map contient que les occ des livre resultats, pas celle dans le graphe
-            originbooks.append(bookid)
-            books += BookM.objects.filter(id=bookid) 
+        for book_matchs in l_books_matchs:
+            bookId          = book_matchs.attributes['idBook']
+            wordsList       = book_matchs.attributes['words']
+            wordsmap = Counter(wordsList)
+            bookMap[bookId] = wordsmap[searchedWord] 
+            bookMapIdWords[bookId] = wordsmap
+            originbooks.append(bookId)
+            books += BookM.objects.filter(id=bookId) 
 
-        bookMap2 = dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True))
-        mostPertinentBooks = list(bookMap2)[:3]
+        # Selectionne les 3 livres ayant le plus d'occurences de la chaine de caractere recherchee
+        mostPertinentBooks = list(dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True)))[:3]
 
-        for bookPertinentId in mostPertinentBooks:  ## les 3 livres pertinents de chaque recherche 
+        for bookPertinentId in mostPertinentBooks: 
             neighbors = list(removekey(bookMap,bookPertinentId)) 
             words_occ_pertinent = bookMapIdWords[bookPertinentId]
             print("\n")
+            # exist nous indique si le livre est deja sauvegarder dans le graph de jaccard
             exist = JaccardGraph.objects.filter(bookId=bookPertinentId).exists()
             if exist:
                 book = JaccardGraph.objects.get(bookId=bookPertinentId)
@@ -203,7 +219,7 @@ class RedirectionSimpleSearch(APIView):
                         )
                         saveGraph(serializerGraph2)
                 
-        ## -------------------------- classement : closeness algorithm / our graph is already set - update book rank
+        # Classement : closeness algorithm / our graph is already set - update book rank
         self.updateBooksRank()
 
         ## ------------------- resume
@@ -214,7 +230,7 @@ class RedirectionSimpleSearch(APIView):
         for sid in suggestions[:5]:
             suggbooks += BookM.objects.filter(id=sid) 
             
-        print("\nsearched word  -> "+str(word))
+        print("\nsearched word  -> "+str(searchedWord))
         print("top three        -> "+str(mostPertinentBooks))
         print("original res     -> "+str(originbooks))
         print("suggestion res   -> "+str(suggestions))

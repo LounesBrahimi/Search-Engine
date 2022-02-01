@@ -14,7 +14,6 @@ def getStopWordList(lang):
         lang = "english"
     elif lang == "fr":
         lang = "french"
-
     return set(stopwords.words(lang))
 
 # renvoyer une liste des mots dans un texte en supprimant les stopword, les espaces, les mots non utils...
@@ -68,10 +67,10 @@ def verifyJaccardDistance(dist, neighborId, neighbors):
         print("==> do not add this neighbour : "+str(neighborId))
         neighbors.remove(neighborId)
 
+# Calcul la distance de jaccard
 def calculJaccardDistance(wordsb1,wordsb2):
     sumOfOcc    = 0
     sumOfmaxOcc = 0
-    
     # word exist just in b1 and b2 : 
     common_words = set(wordsb1).intersection(wordsb2)
     for w1 in common_words:
@@ -79,21 +78,16 @@ def calculJaccardDistance(wordsb1,wordsb2):
         occb2 = wordsb2[w1]
         sumOfmaxOcc +=  max(occb1,occb2) - min(occb1,occb2)
         sumOfOcc    +=  max(occb1,occb2)
-
     # word exist just in b1 : 
     inb1 = list(set(wordsb1).difference(wordsb2))
-
     for w2 in inb1:
         sumOfmaxOcc += wordsb1[w2]
         sumOfOcc    += wordsb1[w2]
-
     # word exist just in b2
     inb2 = list(set(wordsb2).difference(wordsb1))
-
     for w3 in inb2:
         sumOfmaxOcc += wordsb2[w3]
         sumOfOcc    += wordsb2[w3]
-
     try:
         return sumOfmaxOcc/sumOfOcc
     except:

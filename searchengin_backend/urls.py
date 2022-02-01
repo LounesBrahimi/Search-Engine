@@ -6,4 +6,5 @@ urlpatterns = [
     path('getAllIndex/', views.RedirectionIndexList.as_view()),
     path('getGraph/', views.RedirectionGraph.as_view()),
     path('Books/Search/<str:word>/', views.RedirectionSimpleSearch.as_view()),
+    path('Books/<str:id>/', views.RedirectionBookById.as_view()),
 ]
