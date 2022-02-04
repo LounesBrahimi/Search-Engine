@@ -12,6 +12,8 @@ from collections import Counter
 from rest_framework.views import APIView
 import subprocess
 import urllib.request
+import string
+import random
 
 from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
@@ -86,10 +88,14 @@ class RedirectionSimpleSearch(APIView):
 
     # formule la command a effectuer sur le fichier jar pour rechercher la regEx dans le texte
     def result_command(self, text:str, regEx:Str):
+            cpt = 0
             for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, text]):
-                if(len(output_line)>0):
-                    return '#'
-            return ''
+                cpt += 1
+            if (cpt == 0):
+                return ''
+            else:
+                print("counter "+str(cpt))
+                return '#'
 
     # Verifie si le livre contient des chaines de caracteres qui satisfant la regEx recherchee
     def containsRegEx(self, book, regEx:Str):
@@ -99,6 +105,9 @@ class RedirectionSimpleSearch(APIView):
                     return True
             return False
 
+    def random_hash(self, size=32, chars=string.ascii_uppercase + string.digits):
+        return ''.join(random.choice(chars) for _ in range(size))
+
     # Methode principale pour rechercher une regEx ou une chaine de caractere dans la base de donnee
     def get_object(self,word):
         try:
@@ -106,9 +115,15 @@ class RedirectionSimpleSearch(APIView):
                 return BookMIndex.objects.filter(attributes__words__icontains = word)
             else:
                 listBookIndex = []
+                newHash = str(self.random_hash())
                 for book in BookMIndex.objects.all():
                     if (self.containsRegEx(book, word)):
-                        listBookIndex.append(book) 
+                        listBookIndex.append(book)
+                        l = book.attributes['words']
+                        l.append(newHash)
+                        book.words = l
+                        book.save()
+                word = newHash
                 return listBookIndex
         except BookMIndex.DoesNotExist:
             raise Http404
@@ -126,25 +141,28 @@ class RedirectionSimpleSearch(APIView):
         for booknode in graph:
             print("idBook = "+str(booknode.bookId)+" ---> distanceTotal = "+str(booknode.totalDistance)) 
             nodeslen = JaccardGraph.objects.count() 
-            centrality = nodeslen / booknode.totalDistance
+            if (booknode.totalDistance == 0):
+                centrality = 0
+            else:
+                centrality = nodeslen / booknode.totalDistance
             book = BookM.objects.get(id=booknode.bookId)
             book.rank = centrality
             book.save()
 
 
     # Methode permettant de faire la recherche
-    def get(self, request, searchedWord, format=None):
+    def get(self, request, word, format=None):
         print("===========____search begin____===========")
         bookMap, bookMapIdWords, objectdata = ({} for i in range(3))
         originbooks, suggestions =  ([] for i in range(2))
-        jaccardDistance = 80 
-        l_books_matchs = self.get_object(searchedWord)
+        jaccardDistance = 80
+        l_books_matchs = self.get_object(word)
         books = []
         for book_matchs in l_books_matchs:
             bookId          = book_matchs.attributes['idBook']
             wordsList       = book_matchs.attributes['words']
             wordsmap = Counter(wordsList)
-            bookMap[bookId] = wordsmap[searchedWord] 
+            bookMap[bookId] = wordsmap[word] 
             bookMapIdWords[bookId] = wordsmap
             originbooks.append(bookId)
             books += BookM.objects.filter(id=bookId) 
@@ -230,7 +248,7 @@ class RedirectionSimpleSearch(APIView):
         for sid in suggestions[:5]:
             suggbooks += BookM.objects.filter(id=sid) 
             
-        print("\nsearched word  -> "+str(searchedWord))
+        print("\nsearched word  -> "+str(word))
         print("top three        -> "+str(mostPertinentBooks))
         print("original res     -> "+str(originbooks))
         print("suggestion res   -> "+str(suggestions))
