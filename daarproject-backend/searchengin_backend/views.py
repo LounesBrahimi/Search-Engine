@@ -111,8 +111,9 @@ class RedirectionSimpleSearch(APIView):
                 for book in BookMIndex.objects.all():
                     words_book = book.attributes['words']
                     for w in words_book:
-                        if w == word:
+                        if str.lower(w) == str.lower(word):
                             listBookIndex.append(book)
+                            break
                 return listBookIndex
             else:
                 listBookIndex = []
@@ -164,6 +165,9 @@ class RedirectionSimpleSearch(APIView):
         for book_matchs in l_books_matchs:
             bookId          = book_matchs.attributes['idBook']
             wordsList       = book_matchs.attributes['words']
+            print("###########")
+            print("bookId "+ str(bookId))
+            print("###########")
             wordsmap = Counter(wordsList)
             bookMap[bookId] = wordsmap[word] 
             bookMapIdWords[bookId] = wordsmap
