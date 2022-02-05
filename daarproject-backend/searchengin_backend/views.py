@@ -14,6 +14,7 @@ import subprocess
 import urllib.request
 import string
 import random
+import itertools 
 
 from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
@@ -91,19 +92,13 @@ class RedirectionSimpleSearch(APIView):
             cpt = 0
             for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, text]):
                 cpt += 1
-            if (cpt == 0):
-                return ''
-            else:
-                print("counter "+str(cpt))
-                return '#'
+            return cpt
 
     # Verifie si le livre contient des chaines de caracteres qui satisfant la regEx recherchee
     def containsRegEx(self, book, regEx:Str):
             listWords = book.attributes['words']
             united_text_words = '\n'.join(listWords)
-            if (self.result_command(united_text_words, regEx)):
-                    return True
-            return False
+            return (self.result_command(united_text_words, regEx))
 
     def random_hash(self, size=32, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
@@ -112,15 +107,23 @@ class RedirectionSimpleSearch(APIView):
     def get_object(self,word):
         try:
             if (self.estSuiteConcatenations(word)):
-                return BookMIndex.objects.filter(attributes__words__icontains = word)
+                listBookIndex = []
+                for book in BookMIndex.objects.all():
+                    words_book = book.attributes['words']
+                    for w in words_book:
+                        if w == word:
+                            listBookIndex.append(book)
+                return listBookIndex
             else:
                 listBookIndex = []
                 newHash = str(self.random_hash())
                 for book in BookMIndex.objects.all():
-                    if (self.containsRegEx(book, word)):
+                    cpt = self.containsRegEx(book, word)
+                    if (cpt>0):
                         listBookIndex.append(book)
                         l = book.attributes['words']
-                        l.append(newHash)
+                        for i in range(cpt):
+                            l.append(newHash)  
                         book.words = l
                         book.save()
                 word = newHash
