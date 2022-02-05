@@ -1,26 +1,18 @@
 # daar-final-project
 
-### algorithme de suggestions :
-- suite à une recherche, récuperer les 3 livres les plus pertinents de la recherche : qui contient le + grand nombre d'occ du  
-  mot clé 
-- pour chacun des 3 livres, récuperer tt les voisins possibles (les voisins qui restent de la recherche)
-- selectionner que les voisins qui vérifient la distance de jaccard - TO DO LIST
-- stocker dans le graphe le livre pertinant et l'arret vers ses voisins 
-- si le livre pertinent est déja existe dans le graphe mettre à jour la liste des ses voisins
-- mettre à jour la liste de suggestion
-
 ### nouvelles requetes pour tester :
-- http://127.0.0.1:8000/Index/Search/Social/
+- http://127.0.0.1:8000/getAllBooks
+- http://127.0.0.1:8000/getAllIndex/
 - http://127.0.0.1:8000/getGraph/
-- http://127.0.0.1:8000/Index/Search/Fiction
-- http://127.0.0.1:8000/getGraph/
-- http://127.0.0.1:8000/Index/Search/Scientists/
-- http://127.0.0.1:8000/getGraph/
+- http://127.0.0.1:8000/Books/<str:id>/
+- http://127.0.0.1:8000/Books/Search/<str:word>/
+
 
 ### commandes : NB : on peut développer un script pour executer ces commandes d'un coup...
 
 - décommenter la ligne 2 et 3 du fichier tools.py pour télécharger les stopword.. 
 - pip install pydantic
+- pip install nltk
 - python manage.py makemigrations
 - python manage.py migrate  
 - python manage.py dataLoader 1 
@@ -35,6 +27,23 @@ NB : commenter les deux lignes (tools.py) après le lancement du serveur
 - http://127.0.0.1:8000/Books/Search/11/
 - http://127.0.0.1:8000/Index/Search/Modern/
 - http://127.0.0.1:8000/Index/Search/Wonderland/
+
+
+### algorithme de suggestions :
+- suite à une recherche, récuperer les 3 livres les plus pertinents de la recherche : qui contient le + grand nombre d'occ du  
+  mot clé 
+- pour chacun des 3 livres, récuperer tt les voisins possibles (les voisins qui restent de la recherche)
+- selectionner que les voisins qui vérifient la distance de jaccard
+- stocker dans le graphe le livre pertinant et l'arret vers ses voisins + les arrêts inversés
+- si le livre pertinent est déja existe dans le graphe mettre à jour la liste des ses voisins
+- mettre à jour la liste de suggestion et le classement
+
+### algorithme de classement : 
+-
+-
+-
+-
+-
 
 ## Moteur de recherche d’une bibliotheque.
 
