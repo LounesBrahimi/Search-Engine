@@ -90,7 +90,7 @@ class RedirectionSimpleSearch(APIView):
     # formule la command a effectuer sur le fichier jar pour rechercher la regEx dans le texte
     def result_command(self, text:str, regEx:Str):
             cpt = 0
-            for output_line in self.run_regEx_command(['java', '-jar', 'regExSearch.jar', regEx, text]):
+            for output_line in self.run_regEx_command(['java', '-jar', '../regExSearch.jar', regEx, text]):
                 cpt += 1
             return cpt
 

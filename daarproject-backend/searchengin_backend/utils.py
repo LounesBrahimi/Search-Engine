@@ -1,14 +1,14 @@
 import nltk
-nltk.download('stopwords') 
-nltk.download('punkt')
+# nltk.download('stopwords') 
+# nltk.download('punkt')
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from searchengin_backend.serializers import BookMIndexSerializer
 import math 
 
-jaccardDistance = 90 ## %
+jaccardDistance = 90 ## distance de jaccard en %
 
-# recuperer la liste des stop words 
+# récuperer la liste des stop words 
 def getStopWordList(lang):
     if lang == "en":
         lang = "english"
@@ -31,21 +31,22 @@ def getWordList(text,lang) :
                                                 and not w.lower() in stop_words]
     return filtered_words
 
- 
+# serializer la table d'indexage
 def serializeIndex(self,indexbject,counter):
-    self.stdout.write('index table : '+str(indexbject)+'\n')
+    # self.stdout.write('index table : '+str(indexbject)+'\n')
     serializerIndex = BookMIndexSerializer(data={
             "attributes":indexbject
         }
     )
     if serializerIndex.is_valid(raise_exception=True):
         serializerIndex.save()
-        self.stdout.write(self.style.SUCCESS(' ------> sucess adding index : '+str(counter)))
+        self.stdout.write(self.style.SUCCESS(' >> sucess adding index : '+str(counter)))
     else :
-        self.stdout.write(self.style.ERROR(' ------> sucess adding index : '+str(counter)))                 
+        self.stdout.write(self.style.ERROR(' >> sucess adding index : '+str(counter)))                 
     print("\n")
-               
-def printBook(self,idBook,title,author,lang,body,counter):
+
+# afficher un livre      
+def printBook(self,idBook,counter):
     self.stdout.write('book '+str(counter)+' / book id : "%s"' % idBook)
 
 def printSuccesMessage(self,message):
@@ -54,20 +55,22 @@ def printSuccesMessage(self,message):
 def printErrorMessage(self,message):
     self.stdout.write(self.style.ERROR(message))
 
+# sauvgarder le graphe
 def saveGraph(serializerGraph):
     if serializerGraph.is_valid(raise_exception=True):
         serializerGraph.save()
     else :
-        print(' ------> error adding graph')
+        print(' >> error adding graph')
 
+# vérifier qu'un livre respecte la distance de jaccard
 def verifyJaccardDistance(dist, neighborId, neighbors):
     if math.floor(dist) < jaccardDistance: 
-        print("==> add this neighbour : "+str(neighborId)+"\n")
+        print(" >> add this neighbour : "+str(neighborId)+"\n")
     else:
-        print("==> do not add this neighbour : "+str(neighborId))
+        print(" >> do not add this neighbour : "+str(neighborId))
         neighbors.remove(neighborId)
 
-# Calcul la distance de jaccard
+# calculer la distance de jaccard entre deux noeuds/livres dans le graphe
 def calculJaccardDistance(wordsb1,wordsb2):
     sumOfOcc    = 0
     sumOfmaxOcc = 0
@@ -93,20 +96,17 @@ def calculJaccardDistance(wordsb1,wordsb2):
     except:
         return 1
 
+# afficher la distance de jaccard
 def printDistance(bookPertinentId, neighborId, dist):
-    print("==> distance between "+str(bookPertinentId)+" and "+str(neighborId)+" is : "+str(round(dist,2))+" ")
+    print(" >> distance between "+str(bookPertinentId)+" and "+str(neighborId)+" is : "+str(round(dist,2))+" ")
 
+# supprimer un clé depuis un dictionnaire
 def removekey(d, key):
     r = dict(d)
     del r[key]
     return r
 
-mymap = {}
-mymap["key1"] = "val1"
-mymap["key2"] = "val2"
-
-mylist = list(mymap)
-
+# renvoyer le nombre des mots dans une chaine (espace comme séparateur) 
 def numberWordOfString(text : str):
     word_list = text.split()
     return len(word_list)
