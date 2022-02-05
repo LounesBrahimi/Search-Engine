@@ -1,13 +1,5 @@
 # daar-final-project
 
-### nouvelles requetes pour tester :
-- http://127.0.0.1:8000/getAllBooks
-- http://127.0.0.1:8000/getAllIndex/
-- http://127.0.0.1:8000/getGraph/
-- http://127.0.0.1:8000/Books/<str:id>/
-- http://127.0.0.1:8000/Books/Search/<str:word>/
-
-
 ### commandes : NB : on peut développer un script pour executer ces commandes d'un coup...
 
 - décommenter la ligne 2 et 3 du fichier tools.py pour télécharger les stopword.. 
@@ -20,14 +12,12 @@
 
 NB : commenter les deux lignes (tools.py) après le lancement du serveur 
 
-### exemple de requetes : 
-
-- http://127.0.0.1:8000/gelAllBooks/
-- http://127.0.0.1:8000/gelAllIndex/
-- http://127.0.0.1:8000/Books/Search/11/
-- http://127.0.0.1:8000/Index/Search/Modern/
-- http://127.0.0.1:8000/Index/Search/Wonderland/
-
+### requetes pour tester le fonctionnement du projet :
+- http://127.0.0.1:8000/getAllBooks
+- http://127.0.0.1:8000/getAllIndex/
+- http://127.0.0.1:8000/getGraph/
+- http://127.0.0.1:8000/Books/<str:id>/
+- http://127.0.0.1:8000/Books/Search/<str:word>/
 
 ### algorithme de suggestions :
 - suite à une recherche, récuperer les 3 livres les plus pertinents de la recherche : qui contient le + grand nombre d'occ du  
