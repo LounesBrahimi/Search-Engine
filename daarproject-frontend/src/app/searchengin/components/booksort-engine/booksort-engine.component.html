@@ -1,0 +1,16 @@
+<div  style="margin-top: 1%;" mdbDropdown class="btn-group">
+    <button class="btn btn-primary btn-sm" type="button">Sort books by</button>
+    <button
+      type="button"
+      class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split"
+      mdbDropdownToggle
+      aria-expanded="true"
+      data-toggle="dropdown"
+    >
+      <span class="visually-hidden">Sort Book By</span>
+    </button>
+    <ul mdbDropdownMenu class="dropdown-menu">
+      <li><a class="dropdown-item" href="#" (click)="onBookSort('pertinent')">Pertinent</a></li>
+      <li><a class="dropdown-item" href="#" (click)="onBookSort('title')">Title</a></li>
+    </ul>
+</div>
