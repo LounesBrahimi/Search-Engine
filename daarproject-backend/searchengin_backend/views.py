@@ -165,9 +165,6 @@ class RedirectionSimpleSearch(APIView):
         for book_matchs in l_books_matchs:
             bookId          = book_matchs.attributes['idBook']
             wordsList       = book_matchs.attributes['words']
-            print("###########")
-            print("bookId "+ str(bookId))
-            print("###########")
             wordsmap = Counter(wordsList)
             bookMap[bookId] = wordsmap[word] 
             bookMapIdWords[bookId] = wordsmap

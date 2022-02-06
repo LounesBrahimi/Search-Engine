@@ -25,7 +25,7 @@ class Command(BaseCommand):
     # fonction principal handler 
     def handle(self, *args, **options) :
         bookMap = {}
-        sizeDB : int = 10
+        sizeDB : int = 150
         minNumberWords : int = 1000
         page_num : int = 0
         counter = 0
@@ -53,10 +53,12 @@ class Command(BaseCommand):
                     title = book['title']
                     author = ('unknown' if len(book['authors']) == 0 else book['authors'][0]['name'])
                     lang = book['languages'][0]
-                    if(book['formats']['image/jpeg'] is not None):
+                    if (lang != "fr" and lang != "en"):
+                        continue
+                    try:
                         cover = book['formats']['image/jpeg'] # 26272
-                    else:
-                        cover ='unknown'
+                    except:
+                        cover ='unknown' 
                     try:
                         url_book = book['formats']["text/plain; charset=utf-8"]
                         url_book = url_book.replace(".zip", ".txt")
