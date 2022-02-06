@@ -22,4 +22,4 @@ class BookMIndexSerializer(ModelSerializer):
 class JaccardGraphSerializer(ModelSerializer):
     class Meta:
         model = JaccardGraph
-        fields = ('id','bookId','neighbors','totalDistance',)
+        fields = ('id','bookId','neighbors','totalDistance','centrality')

@@ -15,6 +15,8 @@ import urllib.request
 import string
 import random
 import itertools 
+import time
+from django.db.models import Max
 
 from searchengin_backend.utils import calculJaccardDistance, removekey, saveGraph,printDistance
 
@@ -73,7 +75,7 @@ class RedirectionGraph(APIView):
         jsonString = json.dumps(objectdata)
         return HttpResponse(jsonString, content_type="application/json", status=200, reason="get graph")
 
-# ----------------------------- Recherche Simple Par Mot  + Suggestions
+# ----------------------------- Recherche Simple Par Mot + Suggestions
 class RedirectionSimpleSearch(APIView):
     #Retourne vraie si l'expression reguliere est reduite à une suite de concatenations
     def estSuiteConcatenations(self, regEx : str):
@@ -90,7 +92,7 @@ class RedirectionSimpleSearch(APIView):
     # formule la command a effectuer sur le fichier jar pour rechercher la regEx dans le texte
     def result_command(self, text:str, regEx:Str):
             cpt = 0
-            for output_line in self.run_regEx_command(['java', '-jar', '../regExSearch.jar', regEx, text]):
+            for _ in self.run_regEx_command(['java', '-jar', '../regExSearch.jar', regEx, text]):
                 cpt += 1
             return cpt
 
@@ -144,7 +146,7 @@ class RedirectionSimpleSearch(APIView):
         graph = JaccardGraph.objects.all()
         for booknode in graph:
             print("idBook = "+str(booknode.bookId)+" ---> distanceTotal = "+str(booknode.totalDistance)) 
-            nodeslen = JaccardGraph.objects.count() 
+            nodeslen = JaccardGraph.objects.count() ## 15/distanceTotal
             if (booknode.totalDistance == 0):
                 centrality = 0
             else:
@@ -153,28 +155,64 @@ class RedirectionSimpleSearch(APIView):
             book.rank = centrality
             book.save()
 
+    def callGarbageCollector(self):
+        print("graph size : ",str(JaccardGraph.objects.count()))
+        graph = JaccardGraph.objects.order_by("centrality") ## 39 - 25 = 14
+        x = JaccardGraph.objects.count() - 25 
+        i = 0
+        for booknode in graph:
+            if i<x : # 14
+                i += 1
+                print("==> remove object : ",str(booknode.centrality))
+                JaccardGraph.objects.filter(bookId=booknode.bookId).delete()
+            else:
+                continue
 
     # Methode permettant de faire la recherche
     def get(self, request, word, format=None):
         print("===========____search begin____===========")
+
+        # JaccardGraph.objects.all().delete()
+        start_time = time.time()
         bookMap, bookMapIdWords, objectdata = ({} for i in range(3))
         originbooks, suggestions =  ([] for i in range(2))
-        jaccardDistance = 80
-        l_books_matchs = self.get_object(word)
-        books = []
-        for book_matchs in l_books_matchs:
+        jaccardDistance = 75
+        l_books_matchs = self.get_object(word) ## 100 //
+
+        books = [] 
+        for book_matchs in l_books_matchs: # pour chaque object de 100 
             bookId          = book_matchs.attributes['idBook']
             wordsList       = book_matchs.attributes['words']
             wordsmap = Counter(wordsList)
+            
             bookMap[bookId] = wordsmap[word] 
-            bookMapIdWords[bookId] = wordsmap
-            originbooks.append(bookId)
-            books += BookM.objects.filter(id=bookId) 
 
-        # Selectionne les 3 livres ayant le plus d'occurences de la chaine de caractere recherchee
+            bookMapIdWords[bookId] = wordsmap
+            originbooks.append(bookId) # 100
+            books += BookM.objects.filter(id=bookId)  ## book 
+
+            if (len(books) == 10):
+                break
+
+            # print("len actuel : ",len(books))
+            # if(len(books) > 10):
+            #     min_key = min(bookMap, key=bookMap.get) 
+            #     print(" ")
+            #     if bookMap[min_key] <  bookMap[bookId]: 
+            #         del bookMap[min_key]
+            #         books.remove(BookM.objects.filter(id=min_key))
+            #     else:
+
+        # la liste books doit contenir que 10 books = 10 ==> 
+        # books = list(dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True)))[:10]
+
+
+        print("book len : ",len(books))
+        print("bookMap len : ",len(bookMap))
+        # Selectionne les 3 livres ayant le plus d'occurences de la chaine de caractere recherchee 
         mostPertinentBooks = list(dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True)))[:3]
 
-        for bookPertinentId in mostPertinentBooks: 
+        for bookPertinentId in mostPertinentBooks:   # ------------------- 3
             neighbors = list(removekey(bookMap,bookPertinentId)) 
             words_occ_pertinent = bookMapIdWords[bookPertinentId]
             print("\n")
@@ -206,15 +244,27 @@ class RedirectionSimpleSearch(APIView):
                     g.save()
 
                 # ajouter ce nouveau noeud avec un distance total des autres noeuds
+                nodeslen = JaccardGraph.objects.count() ## 15/distanceTotal
+                if (distPertinent == 0):
+                    centrality = 0
+                else:
+                    centrality = nodeslen / distPertinent
                 serializerGraph = JaccardGraphSerializer( data = {
                         "bookId"    : bookPertinentId,
                         "neighbors" : neighbors,
-                        "totalDistance" : distPertinent
+                        "totalDistance" : distPertinent,
+                        "centrality" : centrality
                     }
                 )
                 saveGraph(serializerGraph)
 
-            ## ajouter une arret inverse de chaque voisin
+                # modifier le rang du livre correspondant au livre dans le graphe (les livres pertinent)
+                book = BookM.objects.get(id=bookPertinentId)
+                book.rank = centrality
+                book.save()
+
+
+            ## ajouter une arret inverse de chaque voisin --------------> 7
             for n in neighbors:
                 if n not in mostPertinentBooks:
                     if JaccardGraph.objects.filter(bookId=n).exists():
@@ -233,19 +283,37 @@ class RedirectionSimpleSearch(APIView):
                             distN += dist2
                             g.save()
                         
+                        nodeslen = JaccardGraph.objects.count() ## 15/distanceTotal
+                        if (distN == 0):
+                            centrality = 0
+                        else:
+                            centrality = nodeslen / distN
                         serializerGraph2 = JaccardGraphSerializer( data = {
                             "bookId"    : n,
                             "neighbors" : [bookPertinentId],
-                            "totalDistance" : distN
+                            "totalDistance" : distN,
+                            "centrality" : centrality
                            }
                         )
                         saveGraph(serializerGraph2)
+                        
+                        # modifier le rang du livre correspondant au livre dans le graphe (pour les voisins)
+                        book = BookM.objects.get(id=n)
+                        book.rank = centrality
+                        book.save()
                 
         # Classement : closeness algorithm / our graph is already set - update book rank
-        self.updateBooksRank()
+        # self.updateBooksRank()
+
+        # Social , Modern, Fiction, Women 
+        ## on verifier le graphe : si JaccardGraph.objects.count() = 35 > 25 noeuds ===> 35 - 17 livre au borne de graphe (c-a-d rank min)
+        if JaccardGraph.objects.count() >= 35: # 34 + 5 = 39
+            print("\n ---------- number of nodes in graph > 35, call garbage collector ------\n")
+            self.callGarbageCollector()
+
 
         ## ------------------- resume
-        suggestions = list(dict.fromkeys(suggestions))
+        suggestions = list(dict.fromkeys(suggestions)) 
         suggestions = [id for id in suggestions if id not in originbooks]
 
         suggbooks = []
@@ -260,5 +328,7 @@ class RedirectionSimpleSearch(APIView):
         # objectdata = {}
         objectdata['books']       = BookMSerializer(books, many=True).data
         objectdata['suggestions'] = BookMSerializer(suggbooks, many=True).data
-        print(" ------------------------------------------------------- search end -------------------------------------------------------")
+        
+        print("--- %s seconds ---" % (time.time() - start_time))
+        print("===========____search begin ends____===========",)
         return HttpResponse(json.dumps(objectdata), content_type="application/json", status=200, reason="get indexs accepting filter condition") 

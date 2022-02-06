@@ -28,3 +28,4 @@ class JaccardGraph(models.Model):
     bookId    = models.IntegerField(default="-1") 
     neighbors = models.JSONField(default=dict,null=True) 
     totalDistance = models.FloatField(default="0.0")
+    centrality = models.FloatField(default="0.0") # 
