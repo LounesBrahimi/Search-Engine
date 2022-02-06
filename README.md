@@ -15,7 +15,14 @@ pour le backend :
 - python manage.py makemigrations 
 - python manage.py migrate  
 - python manage.py dataLoader 
-- python manage.py runserver
+- python manage.py runserver (local)
+
+Pour exécuter le projet en backend (serveur) sur une machine, et le front (client), il faut faire les configurations suivantes :
+Coté backend : 
+On ajoute la ligne "ALLOWED_HOSTS = [adress ip] " dans le fichier sittings.py
+Coté front :
+On change l'adress ip dans le fichier src/app/configuration/proxy.conf.json : "target": "http://adress ip:port/"
+- python manage.py runserver 172.20.10.13:8000 (adress du serveur)
 
 pour le front : 
 - se déplacer dans le projet daarproject-backend
