@@ -177,14 +177,11 @@ class RedirectionSimpleSearch(APIView):
         bookMap, bookMapIdWords, objectdata = ({} for i in range(3))
         originbooks, suggestions =  ([] for i in range(2))
         jaccardDistance = 75
-        l_books_matchs = self.get_object(word) ## 100 //
+        l_books_matchs = self.get_object(word) 
 
         books = [] 
 
-        # >>> d = {320: 1, 321: 0, 322: 3}
-        # >>> min(d, key=d.get)
-        # 321
-        for book_matchs in l_books_matchs: # pour chaque object de 20 
+        for book_matchs in l_books_matchs:  
             bookId          = book_matchs.attributes['idBook']
             wordsList       = book_matchs.attributes['words']
             wordsmap = Counter(wordsList)
@@ -196,7 +193,7 @@ class RedirectionSimpleSearch(APIView):
                 books += BookM.objects.filter(id=bookId)  
             else:
                 bookMap[bookId] = wordsmap[word] 
-                min_key = min(bookMap, key=bookMap.get) ## récuperer le min valeur parmi la liste bookMap
+                min_key = min(bookMap, key=bookMap.get) 
                 if bookMap[min_key] > bookMap[bookId]:  
                     continue
                 else:
@@ -305,7 +302,6 @@ class RedirectionSimpleSearch(APIView):
                         book.save()
                 
 
-        # Social , Modern, Fiction, Women 
         if JaccardGraph.objects.count() >= 35: 
             self.callGarbageCollector()
 
