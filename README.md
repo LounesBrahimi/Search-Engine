@@ -11,10 +11,12 @@ pour le backend :
 - pip3 install django djangorestframework
 - pip install pydantic
 - pip install nltk
+- pip install requests 
+- pip install html2text
 
 - python manage.py makemigrations 
 - python manage.py migrate  
-- python manage.py dataLoader 
+- python manage.py dataLoader (attention : la base est déja construite, cette commande est à lancer pour reconstuire la base)
 - python manage.py runserver (local)
 
 Pour exécuter le projet en backend (serveur) sur une machine, et le front (client), il faut faire les configurations suivantes :

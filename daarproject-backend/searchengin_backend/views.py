@@ -158,7 +158,7 @@ class RedirectionSimpleSearch(APIView):
     def callGarbageCollector(self):
         print("graph size : ",str(JaccardGraph.objects.count()))
         graph = JaccardGraph.objects.order_by("centrality") ## 39 - 25 = 14
-        x = JaccardGraph.objects.count() - 25 
+        x = JaccardGraph.objects.count() - 20 
         i = 0
         for booknode in graph:
             if i<x : # 14
@@ -172,7 +172,7 @@ class RedirectionSimpleSearch(APIView):
     def get(self, request, word, format=None):
         print("===========____search begin____===========")
 
-        JaccardGraph.objects.all().delete()
+        #JaccardGraph.objects.all().delete()
         start_time = time.time()
         bookMap, bookMapIdWords, objectdata = ({} for i in range(3))
         originbooks, suggestions =  ([] for i in range(2))
@@ -186,7 +186,7 @@ class RedirectionSimpleSearch(APIView):
             wordsList       = book_matchs.attributes['words']
             wordsmap = Counter(wordsList)
             
-            if(len(books) < 10):
+            if(len(books) < 20):
                 bookMap[bookId] = wordsmap[word] 
                 bookMapIdWords[bookId] = wordsmap
                 originbooks.append(bookId) 
@@ -197,15 +197,18 @@ class RedirectionSimpleSearch(APIView):
                 if bookMap[min_key] > bookMap[bookId]:  
                     continue
                 else:
-                    del bookMap[min_key]
-                    del bookMapIdWords[min_key]
-                    originbooks.remove(min_key)
-                    books.remove(BookM.objects.get(id=min_key))
+                    try:
+                        del bookMap[min_key]
+                        del bookMapIdWords[min_key]
+                        originbooks.remove(min_key)
+                        books.remove(BookM.objects.get(id=min_key))
                     
-                    bookMap[bookId] = wordsmap[word] 
-                    bookMapIdWords[bookId] = wordsmap
-                    originbooks.append(bookId) 
-                    books += BookM.objects.filter(id=bookId)
+                        bookMap[bookId] = wordsmap[word] 
+                        bookMapIdWords[bookId] = wordsmap
+                        originbooks.append(bookId) 
+                        books += BookM.objects.filter(id=bookId)
+                    except:
+                        continue
 
         print("book len : ",len(books))
         print("bookMap len : ",len(bookMap))
@@ -302,7 +305,7 @@ class RedirectionSimpleSearch(APIView):
                         book.save()
                 
 
-        if JaccardGraph.objects.count() >= 35: 
+        if JaccardGraph.objects.count() >= 50: 
             self.callGarbageCollector()
 
 

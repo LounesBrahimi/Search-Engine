@@ -25,8 +25,8 @@ class Command(BaseCommand):
     # fonction principal handler 
     def handle(self, *args, **options) :
         bookMap = {}
-        sizeDB : int = 150
-        minNumberWords : int = 1000
+        sizeDB : int = 1664
+        minNumberWords : int = 10000
         page_num : int = 0
         counter = 0
         numberBooksStocked : int = 0
