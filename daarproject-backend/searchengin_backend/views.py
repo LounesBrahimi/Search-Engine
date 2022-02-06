@@ -172,7 +172,7 @@ class RedirectionSimpleSearch(APIView):
     def get(self, request, word, format=None):
         print("===========____search begin____===========")
 
-        # JaccardGraph.objects.all().delete()
+        JaccardGraph.objects.all().delete()
         start_time = time.time()
         bookMap, bookMapIdWords, objectdata = ({} for i in range(3))
         originbooks, suggestions =  ([] for i in range(2))
@@ -180,39 +180,43 @@ class RedirectionSimpleSearch(APIView):
         l_books_matchs = self.get_object(word) ## 100 //
 
         books = [] 
-        for book_matchs in l_books_matchs: # pour chaque object de 100 
+
+        # >>> d = {320: 1, 321: 0, 322: 3}
+        # >>> min(d, key=d.get)
+        # 321
+        for book_matchs in l_books_matchs: # pour chaque object de 20 
             bookId          = book_matchs.attributes['idBook']
             wordsList       = book_matchs.attributes['words']
             wordsmap = Counter(wordsList)
             
-            bookMap[bookId] = wordsmap[word] 
-
-            bookMapIdWords[bookId] = wordsmap
-            originbooks.append(bookId) # 100
-            books += BookM.objects.filter(id=bookId)  ## book 
-
-            if (len(books) == 10):
-                break
-
-            # print("len actuel : ",len(books))
-            # if(len(books) > 10):
-            #     min_key = min(bookMap, key=bookMap.get) 
-            #     print(" ")
-            #     if bookMap[min_key] <  bookMap[bookId]: 
-            #         del bookMap[min_key]
-            #         books.remove(BookM.objects.filter(id=min_key))
-            #     else:
-
-        # la liste books doit contenir que 10 books = 10 ==> 
-        # books = list(dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True)))[:10]
-
+            if(len(books) < 10):
+                bookMap[bookId] = wordsmap[word] 
+                bookMapIdWords[bookId] = wordsmap
+                originbooks.append(bookId) 
+                books += BookM.objects.filter(id=bookId)  
+            else:
+                bookMap[bookId] = wordsmap[word] 
+                min_key = min(bookMap, key=bookMap.get) ## récuperer le min valeur parmi la liste bookMap
+                if bookMap[min_key] > bookMap[bookId]:  
+                    continue
+                else:
+                    del bookMap[min_key]
+                    del bookMapIdWords[min_key]
+                    originbooks.remove(min_key)
+                    books.remove(BookM.objects.get(id=min_key))
+                    
+                    bookMap[bookId] = wordsmap[word] 
+                    bookMapIdWords[bookId] = wordsmap
+                    originbooks.append(bookId) 
+                    books += BookM.objects.filter(id=bookId)
 
         print("book len : ",len(books))
         print("bookMap len : ",len(bookMap))
-        # Selectionne les 3 livres ayant le plus d'occurences de la chaine de caractere recherchee 
+        
+        # selectionne les 3 livres ayant le plus d'occurences de la chaine de caractere recherchee 
         mostPertinentBooks = list(dict(sorted(bookMap.items(), key=lambda item: item[1],reverse=True)))[:3]
 
-        for bookPertinentId in mostPertinentBooks:   # ------------------- 3
+        for bookPertinentId in mostPertinentBooks:  
             neighbors = list(removekey(bookMap,bookPertinentId)) 
             words_occ_pertinent = bookMapIdWords[bookPertinentId]
             print("\n")
@@ -244,7 +248,7 @@ class RedirectionSimpleSearch(APIView):
                     g.save()
 
                 # ajouter ce nouveau noeud avec un distance total des autres noeuds
-                nodeslen = JaccardGraph.objects.count() ## 15/distanceTotal
+                nodeslen = JaccardGraph.objects.count() 
                 if (distPertinent == 0):
                     centrality = 0
                 else:
@@ -257,14 +261,12 @@ class RedirectionSimpleSearch(APIView):
                     }
                 )
                 saveGraph(serializerGraph)
-
-                # modifier le rang du livre correspondant au livre dans le graphe (les livres pertinent)
                 book = BookM.objects.get(id=bookPertinentId)
                 book.rank = centrality
                 book.save()
 
 
-            ## ajouter une arret inverse de chaque voisin --------------> 7
+            ## ajouter une arret inverse de chaque voisin 
             for n in neighbors:
                 if n not in mostPertinentBooks:
                     if JaccardGraph.objects.filter(bookId=n).exists():
@@ -283,7 +285,7 @@ class RedirectionSimpleSearch(APIView):
                             distN += dist2
                             g.save()
                         
-                        nodeslen = JaccardGraph.objects.count() ## 15/distanceTotal
+                        nodeslen = JaccardGraph.objects.count() 
                         if (distN == 0):
                             centrality = 0
                         else:
@@ -302,17 +304,12 @@ class RedirectionSimpleSearch(APIView):
                         book.rank = centrality
                         book.save()
                 
-        # Classement : closeness algorithm / our graph is already set - update book rank
-        # self.updateBooksRank()
 
         # Social , Modern, Fiction, Women 
-        ## on verifier le graphe : si JaccardGraph.objects.count() = 35 > 25 noeuds ===> 35 - 17 livre au borne de graphe (c-a-d rank min)
-        if JaccardGraph.objects.count() >= 35: # 34 + 5 = 39
-            print("\n ---------- number of nodes in graph > 35, call garbage collector ------\n")
+        if JaccardGraph.objects.count() >= 35: 
             self.callGarbageCollector()
 
 
-        ## ------------------- resume
         suggestions = list(dict.fromkeys(suggestions)) 
         suggestions = [id for id in suggestions if id not in originbooks]
 
